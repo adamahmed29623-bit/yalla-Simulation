@@ -50,6 +50,17 @@ export default function YallaSimulation() {
   };
 
   return (
+    // في أعلى الملف مع الاستيرادات
+import Link from 'next/link';
+
+// داخل قسم الـ header في كود الصفحة
+<header className="text-center mb-8 relative">
+  <Link href="https://yalla-masry-academy.vercel.app" className="absolute right-0 top-0 text-yellow-500 border border-yellow-500 px-4 py-1 rounded-full text-xs hover:bg-yellow-500 hover:text-black transition-all">
+    ⬅️ العودة للأكاديمية
+  </Link>
+  <h1 className="text-3xl font-black text-yellow-500 mb-2">Yalla Simulation 🏺</h1>
+  {/* بقية الكود... */}
+</header>
     <div className="min-h-screen bg-slate-900 text-white p-4 md:p-8 font-sans" dir="rtl">
       <header className="text-center mb-8">
         <h1 className="text-3xl font-black text-yellow-500 mb-2">Yalla Simulation 🏺</h1>
