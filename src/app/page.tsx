@@ -2,315 +2,237 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Mic, Play, Pause, ChevronLeft, 
-  ChevronRight, Compass, BookOpen, Heart, 
-  Landmark, Droplets, Mic2, Star, History, 
-  Moon, Sun, MapPin, Award, AlertCircle, 
-  Languages, CheckCircle2
+  Landmark, Droplets, BookOpen, Mic2, 
+  History, Compass, Star, ChevronRight,
+  ChevronLeft, Play, Pause, Volume2
 } from 'lucide-react';
 
 /**
- * Noor Al-Wahi Mosque - Royal Academy Simulation
- * Developed with precision for Queen Nefertiti.
+ * @title Mosque3D - المحاكاة ثلاثية الأبعاد للمسجد الملكي
+ * يستخدم Three.js لرسم الصرح المعماري بأسلوب يليق بأكاديمية نفرتيتي.
  */
-
 const Mosque3D = () => {
   const mountRef = useRef(null);
 
   useEffect(() => {
-    // Dynamic loading of Three.js to avoid build-time issues
+    // تحميل مكتبة Three.js من مصدر خارجي لضمان استقرار البناء (Build)
     const script = document.createElement('script');
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-    script.onload = () => initThree();
-    document.head.appendChild(script);
-
-    function initThree() {
-      if (!mountRef.current) return;
+    script.async = true;
+    script.onload = () => {
+      if (!mountRef.current || !window.THREE) return;
       const THREE = window.THREE;
-      
-      const width = mountRef.current.clientWidth;
-      const height = mountRef.current.clientHeight;
+
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      const camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       
-      renderer.setSize(width, height);
+      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
       mountRef.current.appendChild(renderer.domElement);
 
-      const group = new THREE.Group();
-
-      // Main Structure (The Mosque)
+      // جسم المسجد الرملي الملكي
       const bodyGeo = new THREE.BoxGeometry(2, 1.5, 2);
-      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xca8a04 }); // Gold tone
-      const body = new THREE.Mesh(bodyGeo, bodyMat);
-      group.add(body);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xc5a059, roughness: 0.7 }); 
+      const mosqueBody = new THREE.Mesh(bodyGeo, bodyMat);
+      scene.add(mosqueBody);
 
-      // Golden Dome
-      const domeGeo = new THREE.SphereGeometry(0.8, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
-      const domeMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 });
+      // القبة الذهبية
+      const domeGeo = new THREE.SphereGeometry(0.85, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+      const domeMat = new THREE.MeshStandardMaterial({ 
+        color: 0xffd700, 
+        metalness: 0.9, 
+        roughness: 0.1 
+      });
       const dome = new THREE.Mesh(domeGeo, domeMat);
       dome.position.y = 0.75;
-      group.add(dome);
+      scene.add(dome);
 
-      // Minarets function
-      const createMinaret = (x, z) => {
-        const minaret = new THREE.Group();
-        const colGeo = new THREE.CylinderGeometry(0.1, 0.1, 2.5);
-        const col = new THREE.Mesh(colGeo, bodyMat);
-        const topGeo = new THREE.ConeGeometry(0.15, 0.4, 32);
-        const top = new THREE.Mesh(topGeo, domeMat);
-        top.position.y = 1.45;
-        minaret.add(col);
-        minaret.add(top);
-        minaret.position.set(x, 0.5, z);
-        return minaret;
-      };
+      // المآذن الأربعة
+      const minaretGeo = new THREE.CylinderGeometry(0.1, 0.15, 3);
+      const positions = [[1.2, 1.2], [-1.2, 1.2], [1.2, -1.2], [-1.2, -1.2]];
+      positions.forEach(pos => {
+        const m = new THREE.Mesh(minaretGeo, bodyMat);
+        m.position.set(pos[0], 0.75, pos[1]);
+        scene.add(m);
+        
+        // رؤوس المآذن الذهبية
+        const tipGeo = new THREE.ConeGeometry(0.15, 0.5, 12);
+        const tip = new THREE.Mesh(tipGeo, domeMat);
+        tip.position.set(pos[0], 2.25, pos[1]);
+        scene.add(tip);
+      });
 
-      group.add(createMinaret(1.2, 1.2));
-      group.add(createMinaret(-1.2, 1.2));
-      group.add(createMinaret(1.2, -1.2));
-      group.add(createMinaret(-1.2, -1.2));
+      // الإضاءة
+      const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      sunLight.position.set(5, 10, 7.5);
+      scene.add(sunLight);
+      scene.add(new THREE.AmbientLight(0x404040, 0.8));
 
-      scene.add(group);
-
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambientLight);
-      const pointLight = new THREE.PointLight(0xffffff, 1);
-      pointLight.position.set(5, 5, 5);
-      scene.add(pointLight);
-
-      camera.position.z = 5;
-      camera.position.y = 1.2;
+      camera.position.set(4, 3, 5);
+      camera.lookAt(0, 0, 0);
 
       const animate = () => {
         requestAnimationFrame(animate);
-        group.rotation.y += 0.005;
+        scene.rotation.y += 0.003; // دوران هادئ يليق بالوقار
         renderer.render(scene, camera);
       };
       animate();
 
       const handleResize = () => {
         if (!mountRef.current) return;
-        const w = mountRef.current.clientWidth;
-        const h = mountRef.current.clientHeight;
-        renderer.setSize(w, h);
-        camera.aspect = w / h;
+        const width = mountRef.current.clientWidth;
+        const height = mountRef.current.clientHeight;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
         camera.updateProjectionMatrix();
       };
       window.addEventListener('resize', handleResize);
-    }
+    };
+    document.head.appendChild(script);
   }, []);
 
-  return <div ref={mountRef} className="w-full h-[350px] md:h-[450px]" />;
+  return <div ref={mountRef} className="w-full h-72 md:h-[450px] cursor-grab active:cursor-grabbing" />;
 };
 
 const App = () => {
-  const [view, setView] = useState('entrance');
-  const [lang, setLang] = useState('ar');
+  const [view, setView] = useState('landing');
   const [wuduStep, setWuduStep] = useState(0);
 
-  const translations = {
-    ar: {
-      title: "مسجد نور الوحي",
-      subtitle: "أكاديمية نفرتيتي الملكية للعلوم الدينية",
-      enter: "تفضلوا بالدخول بسلام",
-      wudu: "محاكاة الوضوء التفاعلية",
-      azan: "مئذنة الأذان",
-      quran: "محراب الترتيل",
-      qibla: "بوصلة القبلة",
-      record: "مختبر الصوت الملكي",
-      sunna: "روضة الأذكار",
-      back: "العودة",
-      next: "الخطوة التالية",
-      prev: "الخطوة السابقة",
-      finish: "إتمام الوضوء",
-      wuduSteps: [
-        "النية والتسمية في القلب (بسم الله)",
-        "غسل الكفين إلى الرسغين ثلاث مرات",
-        "المضمضة: إدخال الماء للفم وتحريكه 3 مرات",
-        "الاستنشاق والاستنثار: تنظيف الأنف بالماء 3 مرات",
-        "غسل الوجه كاملاً من منبت الشعر للذقن 3 مرات",
-        "غسل اليدين من أطراف الأصابع للمرفقين 3 مرات",
-        "مسح الرأس بماء جديد مرة واحدة",
-        "مسح الأذنين (السبابة بالداخل والإبهام بالخارج)",
-        "غسل الرجلين إلى الكعبين مع تخليل الأصابع 3 مرات"
-      ]
-    },
-    en: {
-      title: "Noor Al-Wahi Mosque",
-      subtitle: "Nefertiti Royal Academy for Religious Sciences",
-      enter: "Enter in Peace",
-      wudu: "Interactive Wudu Simulation",
-      azan: "Adhan Tower",
-      quran: "Quran Sanctuary",
-      qibla: "Qibla Compass",
-      record: "Royal Voice Lab",
-      sunna: "Dhikr Garden",
-      back: "Back",
-      next: "Next Step",
-      prev: "Previous Step",
-      finish: "Finish Wudu",
-      wuduSteps: [
-        "Intention & Saying Bismillah",
-        "Washing hands up to wrists (3 times)",
-        "Rinsing the mouth (3 times)",
-        "Inhaling water into nose (3 times)",
-        "Washing the entire face (3 times)",
-        "Washing arms up to elbows (3 times)",
-        "Wiping the head (Once)",
-        "Wiping the ears (Once)",
-        "Washing feet up to ankles (3 times)"
-      ]
-    }
-  };
-
-  const t = translations[lang] || translations['ar'];
-
-  const menuItems = [
-    { id: 'wudu', title: t.wudu, icon: <Droplets />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { id: 'azan', title: t.azan, icon: <Mic2 />, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-    { id: 'quran', title: t.quran, icon: <BookOpen />, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { id: 'qibla', title: t.qibla, icon: <Compass />, color: 'text-amber-600', bg: 'bg-amber-600/10' },
-    { id: 'record', title: t.record, icon: <Mic />, color: 'text-red-500', bg: 'bg-red-500/10' },
-    { id: 'sunna', title: t.sunna, icon: <Moon />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+  const wuduSteps = [
+    { title: "النية والتسمية", desc: "استحضار النية في القلب وقول 'بسم الله'" },
+    { title: "غسل الكفين", desc: "غسل الكفين ثلاثاً مع تخليل الأصابع" },
+    { title: "المضمضة", desc: "إدارة الماء في الفم ثلاثاً" },
+    { title: "الاستنشاق", desc: "جذب الماء بالأنف ثم إخراجه ثلاثاً" },
+    { title: "غسل الوجه", desc: "من منابت الشعر إلى أسفل الذقن ثلاثاً" },
+    { title: "اليدين للمرفقين", desc: "البدء باليد اليمنى ثم اليسرى ثلاثاً" },
+    { title: "مسح الرأس", desc: "مسح الرأس مرة واحدة مع الأذنين" },
+    { title: "غسل الرجلين", desc: "غسل الرجلين إلى الكعبين مع تخليل الأصابع" }
   ];
 
-  if (view === 'entrance') {
+  if (view === 'landing') {
     return (
-      <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-        {/* Language Switcher */}
-        <div className="absolute top-8 right-8 z-50 flex gap-2">
-          {['ar', 'en'].map(l => (
-            <button 
-              key={l}
-              onClick={() => setLang(l)}
-              className={`px-4 py-2 rounded-full border transition-all ${lang === l ? 'bg-yellow-600 border-yellow-600 text-black font-bold' : 'border-white/20 hover:bg-white/5'}`}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-
-        <div className="z-10 w-full max-w-5xl text-center space-y-8">
+      <div className="min-h-screen bg-[#080808] text-white flex flex-col items-center justify-center p-6 text-center" dir="rtl">
+        {/* خلفية ملكية متدرجة */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(184,134,11,0.1),transparent)] pointer-events-none" />
+        
+        <div className="max-w-4xl w-full z-10 space-y-8">
           <Mosque3D />
+          
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-8xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600">
-              {t.title}
+            <h1 className="text-5xl md:text-8xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-800">
+              مسجد نور الوحي
             </h1>
-            <p className="text-xl md:text-2xl text-gray-400 font-light max-w-2xl mx-auto italic">
-              {t.subtitle}
+            <p className="text-xl md:text-2xl text-yellow-600/80 font-light tracking-widest uppercase">
+              أكاديمية نفرتيتي الملكية
             </p>
           </div>
-          
+
           <button 
-            onClick={() => setView('courtyard')}
-            className="px-16 py-5 bg-yellow-600 text-black font-black text-xl rounded-full hover:bg-yellow-500 transition-all hover:scale-105 shadow-[0_0_50px_rgba(202,138,4,0.4)]"
+            onClick={() => setView('dashboard')}
+            className="mt-10 px-16 py-5 bg-gradient-to-r from-yellow-700 to-yellow-500 rounded-full text-black font-bold text-xl shadow-[0_10px_40px_rgba(184,134,11,0.3)] hover:scale-105 transition-transform"
           >
-            {t.enter}
+            دخول الصرح المبارك
           </button>
         </div>
       </div>
     );
   }
 
-  if (view === 'courtyard') {
-    return (
-      <div className="min-h-screen bg-[#080808] text-white p-6 md:p-12" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-        <div className="max-w-7xl mx-auto">
-          <header className="flex flex-col md:flex-row justify-between items-center mb-12 border-b border-white/5 pb-8 gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-yellow-600/20 rounded-xl text-yellow-500">
-                <Landmark size={32} />
-              </div>
-              <h2 className="text-3xl font-serif font-bold text-yellow-500">{t.title}</h2>
-            </div>
-            <button onClick={() => setView('entrance')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-              <History size={20} /> {lang === 'ar' ? 'البوابة الرئيسية' : 'Main Entrance'}
-            </button>
-          </header>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {menuItems.map((item) => (
-              <div 
-                key={item.id}
-                onClick={() => setView(item.id)}
-                className="group relative bg-[#121212] p-8 rounded-[2.5rem] border border-white/5 hover:border-yellow-600/40 cursor-pointer transition-all hover:-translate-y-2 overflow-hidden"
-              >
-                <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center text-3xl mb-6`}>
-                  {item.icon}
-                </div>
-                <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-                <div className="absolute bottom-0 left-0 h-1 bg-yellow-600 w-0 group-hover:w-full transition-all duration-500"></div>
-              </div>
-            ))}
+  return (
+    <div className="min-h-screen bg-[#050505] text-[#e0e0e0] font-sans selection:bg-yellow-500/30" dir="rtl">
+      {/* Header */}
+      <nav className="p-6 border-b border-white/5 flex justify-between items-center backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-yellow-600/20 rounded-full flex items-center justify-center border border-yellow-600/40">
+            <Landmark className="text-yellow-500" size={24} />
           </div>
+          <span className="text-2xl font-serif font-bold text-yellow-500">نور الوحي</span>
         </div>
-      </div>
-    );
-  }
+        <button onClick={() => setView('landing')} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+          <History size={24} className="text-gray-500 hover:text-white" />
+        </button>
+      </nav>
 
-  if (view === 'wudu') {
-    return (
-      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4 md:p-10" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-        <div className="w-full max-w-3xl bg-[#111] rounded-[3rem] p-8 md:p-12 border border-blue-900/20 relative shadow-2xl">
-          <div className="flex justify-between items-center mb-10">
-            <h2 className="text-3xl font-bold text-blue-400 flex items-center gap-3">
-              <Droplets className="animate-pulse" /> {t.wudu}
-            </h2>
-            <button 
-              onClick={() => { setView('courtyard'); setWuduStep(0); }}
-              className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors"
-            >
-              <ChevronLeft size={24} />
-            </button>
+      <main className="max-w-7xl mx-auto p-6 md:p-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Main Simulator Card */}
+          <div className="lg:col-span-8 bg-[#111] rounded-[2rem] border border-white/5 p-8 relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-600 to-transparent opacity-50" />
+            
+            <div className="flex justify-between items-center mb-12">
+              <div className="flex items-center gap-3">
+                <Droplets className="text-blue-400" />
+                <h2 className="text-3xl font-bold">محاكاة الوضوء الشرعي</h2>
+              </div>
+              <span className="px-4 py-1 bg-blue-500/10 text-blue-400 rounded-full text-sm font-mono border border-blue-500/20">
+                STEP {wuduStep + 1} / 8
+              </span>
+            </div>
+
+            <div className="min-h-[300px] flex flex-col items-center justify-center text-center space-y-6">
+              <div className="w-24 h-24 bg-blue-500/5 rounded-full flex items-center justify-center animate-pulse">
+                <Droplets size={48} className="text-blue-500/50" />
+              </div>
+              <h3 className="text-4xl font-serif text-white">{wuduSteps[wuduStep].title}</h3>
+              <p className="text-xl text-gray-400 max-w-md">{wuduSteps[wuduStep].desc}</p>
+            </div>
+
+            <div className="flex gap-4 mt-12">
+              <button 
+                disabled={wuduStep === 0}
+                onClick={() => setWuduStep(s => s - 1)}
+                className="flex-1 py-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all disabled:opacity-20"
+              >
+                السابق
+              </button>
+              <button 
+                onClick={() => wuduStep < 7 ? setWuduStep(s => s + 1) : setWuduStep(0)}
+                className="flex-[2] py-5 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-bold text-lg hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] transition-all"
+              >
+                {wuduStep === 7 ? "إتمام الوضوء" : "الخطوة التالية"}
+              </button>
+            </div>
           </div>
 
-          <div className="relative h-2 bg-white/5 rounded-full mb-16 overflow-hidden">
-            <div 
-              className="absolute h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all duration-700"
-              style={{ width: `${((wuduStep + 1) / t.wuduSteps.length) * 100}%` }}
-            />
-          </div>
+          {/* Side Panels */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-[#111] p-8 rounded-[2rem] border border-white/5 hover:border-yellow-600/30 transition-all group">
+              <Mic2 className="text-yellow-600 mb-4 group-hover:scale-110 transition-transform" size={32} />
+              <h3 className="text-xl font-bold mb-2">محراب الأذان</h3>
+              <p className="text-gray-500 text-sm leading-relaxed italic">
+                تدريب ملكي على مخارج الحروف لرفع النداء العظيم بأعذب الأصوات.
+              </p>
+            </div>
 
-          <div className="text-center py-10 space-y-6">
-            <div className="text-7xl mb-6">🌊</div>
-            <div className="space-y-2">
-              <span className="text-blue-500 font-mono text-xl tracking-widest uppercase">Step {wuduStep + 1}</span>
-              <p className="text-3xl md:text-4xl font-serif font-medium leading-relaxed px-4">
-                {t.wuduSteps[wuduStep]}
+            <div className="bg-[#111] p-8 rounded-[2rem] border border-white/5 hover:border-emerald-600/30 transition-all group">
+              <BookOpen className="text-emerald-600 mb-4 group-hover:scale-110 transition-transform" size={32} />
+              <h3 className="text-xl font-bold mb-2">تلاوة الفرقان</h3>
+              <p className="text-gray-500 text-sm leading-relaxed italic">
+                مدرسة ترتيل الآيات بضبط الأحكام، لتكون تلاوتك نوراً في قلبك.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-yellow-900/20 to-black p-8 rounded-[2rem] border border-yellow-600/20">
+              <div className="flex items-center gap-3 text-yellow-500 mb-4">
+                <Star size={20} fill="currentColor" />
+                <span className="font-bold uppercase tracking-tighter">كلمة الأكاديمية</span>
+              </div>
+              <p className="text-sm text-yellow-100/60 leading-relaxed italic">
+                "إن هذا الصرح لم يُشيد ليكون مجرد مشروع، بل هو هوية ملكية تجمع بين قدسية العلم وجمال الفن."
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mt-12">
-            <button 
-              disabled={wuduStep === 0}
-              onClick={() => setWuduStep(prev => prev - 1)}
-              className="flex-1 py-5 bg-white/5 hover:bg-white/10 rounded-2xl disabled:opacity-20 font-bold transition-all"
-            >
-              {t.prev}
-            </button>
-            <button 
-              onClick={() => wuduStep < t.wuduSteps.length - 1 ? setWuduStep(prev => prev + 1) : setView('courtyard')}
-              className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-xl shadow-lg shadow-blue-900/40 hover:bg-blue-500 transition-all hover:scale-[1.02]"
-            >
-              {wuduStep === t.wuduSteps.length - 1 ? t.finish : t.next}
-            </button>
-          </div>
         </div>
-      </div>
-    );
-  }
+      </main>
 
-  // Fallback view for unimplemented sections
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-24 h-24 bg-yellow-600/10 text-yellow-500 rounded-full flex items-center justify-center mb-6">
-        <Star size={48} className="animate-spin-slow" />
-      </div>
-      <h2 className="text-4xl font-serif mb-4 text-yellow-500">محراب {view} تحت التطوير</h2>
-      <p className="text-gray-400 mb-10 max-w-md">نحن نعمل على تجهيز هذا القسم بأعلى المعايير الملكية لنقدم لكِ تجربة لا تُنسى.</p>
-      <button onClick={() => setView('courtyard')} className="px-10 py-4 bg-white/10 rounded-full hover:bg-white/20 transition-all">العودة للصحن</button>
+      <footer className="p-12 text-center text-gray-600 border-t border-white/5 mt-12">
+        <p className="font-light tracking-[0.3em] text-xs">
+          DESIGNED EXCLUSIVELY FOR NEFERTITI ROYAL ACADEMY &copy; {new Date().getFullYear()}
+        </p>
+      </footer>
     </div>
   );
 };
