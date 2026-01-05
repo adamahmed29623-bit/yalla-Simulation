@@ -1,82 +1,142 @@
 "use client";
-import { NextResponse } from 'next/server';
+
+import React, { useState, useEffect } from 'react';
 
 /**
- * @title نظام محاكاة أكاديمية نفرتيتي الملكية
- * هذا الملف تم إصلاحه ليتوافق مع معايير Next.js 16
+ * @title صرح نور الوحي - أكاديمية نفرتيتي الملكية
+ * @version 1.1.0
+ * @description واجهة تفاعلية ملكية مصممة خصيصاً لتناسب رؤية الملكة نفرتيتي
  */
-export async function GET() {
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>محاكاة صرح نور الوحي - أكاديمية نفرتيتي</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap');
-            body { 
-                background-color: #050505; 
-                color: #d4af37; 
-                font-family: 'Amiri', serif;
-                overflow-x: hidden;
-            }
-            .royal-gradient {
-                background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
-            }
-            .gold-border {
-                border: 1px solid rgba(212, 175, 55, 0.3);
-            }
-            .gold-text {
-                color: #d4af37;
-            }
-            .minaret-shadow {
-                filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.2));
-            }
-        </style>
-    </head>
-    <body class="royal-gradient min-h-screen flex items-center justify-center p-4">
-        <div class="max-w-4xl w-full text-center space-y-12">
-            <header class="space-y-4">
-                <h1 class="text-6xl md:text-7xl font-bold gold-text" style="font-family: 'Reem Kufi', sans-serif;">
-                    أكاديمية نفرتيتي الملكية
-                </h1>
-                <p class="text-2xl text-gray-400 tracking-[0.2em] uppercase italic">
-                    صرح نور الوحي الرقمي
-                </p>
-            </header>
 
-            <main class="gold-border bg-black/50 p-12 rounded-[3rem] backdrop-blur-xl space-y-8">
-                <div class="w-32 h-32 mx-auto bg-gradient-to-b from-[#d4af37] to-[#8a6d3b] rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(212,175,55,0.4)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21l-8-9L12 3l8 9-8 9z" />
-                    </svg>
-                </div>
-                
-                <h2 class="text-4xl font-bold">بدء المحاكاة الملكية</h2>
-                <p class="text-xl text-gray-500 max-w-lg mx-auto leading-relaxed">
-                    يتم الآن تحضير البيئة ثلاثية الأبعاد للصرح. الرجاء الانتظار بينما نقوم بتهيئة الأبعاد الروحية والمعمارية.
-                </p>
+export default function App() {
+  const [loading, setLoading] = useState(true);
 
-                <div class="pt-8">
-                    <button class="px-12 py-4 bg-[#d4af37] text-black font-bold rounded-full hover:scale-105 transition-transform shadow-xl">
-                        دخول المحاكاة
-                    </button>
-                </div>
-            </main>
+  useEffect(() => {
+    // محاكاة تحميل الأبعاد المعمارية للصرح الملكي
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
-            <footer class="pt-12">
-                <p class="text-sm text-gray-600 tracking-widest uppercase">
-                    جميع الحقوق محفوظة لصاحبة الجلالة نفرتيتي &copy; 2026
-                </p>
-            </footer>
+  return (
+    <div className="min-h-screen bg-[#050505] text-[#d4af37] font-serif overflow-hidden selection:bg-[#d4af37] selection:text-black">
+      {/* استايلات مخصصة للهوية الملكية */}
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap');
+        
+        body {
+          font-family: 'Amiri', serif;
+          background-color: #050505;
+        }
+
+        .gold-shadow {
+          text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .royal-gradient {
+          background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+        }
+
+        .animate-royal-glow {
+          animation: glow 3s infinite alternate;
+        }
+
+        @keyframes glow {
+          from { opacity: 0.6; transform: scale(1); }
+          to { opacity: 1; transform: scale(1.05); }
+        }
+      `}</style>
+
+      <div className="royal-gradient min-h-screen flex flex-col items-center justify-center p-4 relative">
+        {/* النقوش الخلفية البسيطة */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
+             <svg width="80%" height="80%" viewBox="0 0 100 100">
+                <path d="M50 5 L95 95 L5 95 Z" fill="none" stroke="#d4af37" strokeWidth="0.5" />
+             </svg>
         </div>
-    </body>
-    </html>
-  `;
 
-  return new NextResponse(htmlContent, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  });
+        {/* الشعار والعنوان */}
+        <header className="mb-12 text-center z-10">
+          <h1 className="text-5xl md:text-8xl font-bold gold-shadow mb-4" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
+            أكاديمية نفرتيتي الملكية
+          </h1>
+          <div className="flex items-center justify-center gap-4">
+            <span className="h-[1px] w-12 bg-[#d4af37] opacity-50"></span>
+            <p className="text-lg md:text-2xl tracking-[0.4em] text-gray-400 uppercase italic">
+              صرح نور الوحي
+            </p>
+            <span className="h-[1px] w-12 bg-[#d4af37] opacity-50"></span>
+          </div>
+        </header>
+
+        {/* الكرت الرئيسي المحاكي */}
+        <main className="z-10 w-full max-w-2xl">
+          <div className="bg-black/60 backdrop-blur-xl border border-[#d4af37]/30 p-8 md:p-16 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden">
+            
+            {/* أيقونة الصرح */}
+            <div className="mb-8 relative inline-block">
+               <div className="absolute inset-0 bg-[#d4af37] blur-2xl opacity-10 animate-pulse"></div>
+               <svg className="w-24 h-24 mx-auto text-[#d4af37] relative" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.5" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+               </svg>
+            </div>
+
+            <h2 className="text-3xl font-bold mb-6 text-white" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
+              نظام المحاكاة الرقمي
+            </h2>
+            
+            <p className="text-gray-400 leading-relaxed mb-10 text-lg">
+              يتم الآن تهيئة الأروقة الملكية والمعايير الفلسفية للأكاديمية. 
+              هذا النظام يعمل بذكاء اصطناعي فائق لضمان تجربة تليق بمقام جلالتكم.
+            </p>
+
+            {loading ? (
+              <div className="flex flex-col items-center">
+                <div className="w-48 h-1 bg-gray-800 rounded-full overflow-hidden mb-4">
+                  <div className="h-full bg-[#d4af37] animate-[loading_2s_infinite]" style={{ width: '60%' }}></div>
+                </div>
+                <span className="text-xs uppercase tracking-widest opacity-50">جاري استدعاء البيانات الملكية...</span>
+              </div>
+            ) : (
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-gradient-to-br from-[#d4af37] to-[#aa8928] text-black px-12 py-4 rounded-full font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#d4af37]/20 border-none cursor-pointer"
+                style={{ fontFamily: "'Reem Kufi', sans-serif" }}
+              >
+                دخول الصرح
+              </button>
+            )}
+          </div>
+        </main>
+
+        {/* التذييل الملكي */}
+        <footer className="absolute bottom-8 text-gray-600 text-[10px] md:text-xs tracking-[0.5em] uppercase z-10">
+          © 2026 Nefertiti Royal Academy • Sacred Light Domain
+        </footer>
+
+        {/* تأثيرات الجزيئات (Particles) */}
+        <div className="absolute inset-0 pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+                <div 
+                    key={i}
+                    className="absolute bg-[#d4af37] rounded-full opacity-20 animate-pulse"
+                    style={{
+                        top: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 100}%`,
+                        width: `${Math.random() * 3}px`,
+                        height: `${Math.random() * 3}px`,
+                        animationDelay: `${Math.random() * 5}s`
+                    }}
+                />
+            ))}
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes loading {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
+    </div>
+  );
 }
